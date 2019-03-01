@@ -3,6 +3,8 @@
 const express     = require('express');
 const bodyParser  = require('body-parser');
 const fccTesting  = require('./freeCodeCamp/fcctesting.js');
+const passport    = require('passport');
+const session     = require('express-session');
 
 const app = express();
 
@@ -15,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.route('/')
   .get((req, res) => {
-    res.render('pug/index.pug');
+    res.render('pug/index.pug', {title: 'Hello', message: 'Please login'});
   });
 
 app.listen(process.env.PORT || 3000, () => {
