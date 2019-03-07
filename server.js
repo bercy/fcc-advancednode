@@ -31,37 +31,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.serializeUser((user, done) => {
-  done(null, user._id);
-});
 
-app.route('/')
-  .get((req, res) => {
-    res.render('pug/index', {title: 'Home Page', message: 'Please login', showLogin: true, showRegistration: true});
-  });
-
-
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-      return next();
-  }
-  res.redirect('/');
-};
-
-app.route('/profile')
-  .get(ensureAuthenticated, (req, res) => {
-    res.render(process.cwd() + '/views/pug/profile', {username: req.user.username});
-  });
-
-
-app.post('/login', passport.authenticate('local', {failureRedirect: '/'}), (req, res) => {
-  res.redirect('/profile');
-});
-
-app.get('/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
-});
 
 
 mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
@@ -80,16 +50,50 @@ mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
     });
     
     passport.use(new LocalStrategy(
-      function(username, password, done) {
-        db.collection('users').findOne({ username: username }, function (err, user) {
-          console.log('User "'+ username +'" attempted to log in.');
-          if (err) { return done(err); }
-          if (!user) { return done(null, false); }
-          if (password !== user.password) { return done(null, false); }
-          return done(null, user);
-        });
+          function(username, password, done) {
+            db.collection('users').findOne({ username: username }, function (err, user) {
+              console.log('User "'+ username +'" attempted to log in.');
+              if (err) { return done(err); }
+              if (!user) { return done(null, false); }
+              if (password !== user.password) { return done(null, false); }
+
+              console.log('logged in');
+              return done(null, user);
+            });
+          }
+        ));
+
+        passport.serializeUser((user, done) => {
+      done(null, user._id);
+    });
+
+    app.route('/')
+      .get((req, res) => {
+        res.render('pug/index', {title: 'Home Page', message: 'Please login', showLogin: true, showRegistration: true});
+      });
+
+
+    function ensureAuthenticated(req, res, next) {
+      if (req.isAuthenticated()) {
+          return next();
       }
-    ));
+      res.redirect('/');
+    };
+
+    app.route('/profile')
+      .get(ensureAuthenticated, (req, res) => {
+        res.render(process.cwd() + '/views/pug/profile', {username: req.user.username});
+      });
+
+
+    app.post('/login', passport.authenticate('local', {failureRedirect: '/'}), (req, res) => {
+      res.redirect('/profile');
+    });
+
+    app.get('/logout', (req, res) => {
+      req.logout();
+      res.redirect('/');
+    });
     
     app.route('/register')
       .post((req, res, next) => {
@@ -116,17 +120,17 @@ mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
               }
           })},
         passport.authenticate('local', { failureRedirect: '/' }),
-        (req, res, next) => {
+        (req, res) => {
             res.redirect('/profile');
         }
     );
-    
+  /*  
     app.use((req, res, next) => {
       res.status(404)
         .type('text')
         .send('Not Found');
     });
-
+*/
     app.listen(process.env.PORT || 3000, () => {
       console.log("Listening on port " + process.env.PORT);
     });
