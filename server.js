@@ -32,14 +32,26 @@ passport.serializeUser((user, done) => {
 
 app.route('/')
   .get((req, res) => {
-    res.render('pug/index.pug', {title: 'Hello', message: 'Please login'});
+    res.render('pug/index.pug', {title: 'Hello', message: 'Please login', showLogin: true});
   });
+
+app.post('/login', passport.authenticate('local', {failureRedirect: '/'}), (req, res) => {
+  res.redirect('/profile');
+});
+
+app.get('/profile', (req, res) => {
+  res.render('pug/profile.pug');
+});
+
 
 mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, db) => {
   if(err) {
     console.log('Database error: ' + err);
   } else {
     console.log('Successful database connection');
+        console.log(db);
+
+
     
     passport.deserializeUser((id, done) => {
       db.collection('users').findOne({_id: new ObjectID(id)}, (err, doc) => {
