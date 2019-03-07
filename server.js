@@ -30,6 +30,17 @@ passport.serializeUser((user, done) => {
 });
 
 
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  
+  console.log('not authed, redirect to landing page');
+
+  res.redirect('/');  
+}
+
+
 app.route('/')
   .get((req, res) => {
     res.render('pug/index.pug', {title: 'Hello', message: 'Please login', showLogin: true});
@@ -39,7 +50,7 @@ app.post('/login', passport.authenticate('local', {failureRedirect: '/'}), (req,
   res.redirect('/profile');
 });
 
-app.get('/profile', (req, res) => {
+app.get('/profile', ensureAuthenticated, (req, res) => {
   res.render('pug/profile.pug');
 });
 
