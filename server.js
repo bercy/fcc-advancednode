@@ -31,6 +31,26 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+if (process.env.ENABLE_DELAYS) app.use((req, res, next) => {
+  
+  switch (req.method) {
+    case 'GET':
+      switch (req.url) {
+        //case '/logout': return setTimeout(() => next(), 500);
+        //case '/profile': return setTimeout(() => next(), 700);
+        default: next();
+      }
+    break;
+    case 'POST':
+      switch (req.url) {
+        case '/login': return setTimeout(() => next(), 2000);
+        default: next();
+      }
+    break;
+    default: next();
+  }
+});
+
 
 
 
