@@ -29,30 +29,29 @@ passport.serializeUser((user, done) => {
   done(null, user._id);
 });
 
+app.route('/')
+  .get((req, res) => {
+    res.render('pug/index', {title: 'Hello', message: 'Please login', showLogin: true});
+  });
+
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-    return next();
+      return next();
   }
-  
-  console.log('not authed, redirect to landing page');
+  res.redirect('/');
+};
 
-  res.redirect('/');  
-}
-
-
-app.route('/')
-  .get((req, res) => {
-    res.render('pug/index.pug', {title: 'Hello', message: 'Please login', showLogin: true});
+app.route('/profile')
+  .get(ensureAuthenticated, (req,res) => {
+       res.render('pug/profile');
   });
+
 
 app.post('/login', passport.authenticate('local', {failureRedirect: '/'}), (req, res) => {
   res.redirect('/profile');
 });
 
-app.get('/profile', ensureAuthenticated, (req, res) => {
-  res.render('pug/profile.pug');
-});
 
 
 mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
