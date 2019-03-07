@@ -13,6 +13,17 @@ const app = express();
 
 app.set('view engine', 'pug');
 
+app.use((req, res, next) => {
+  console.log(req.url);
+  next();
+});
+
+app.use((req, res, next) => {
+  res.status(404)
+    .type('text')
+    .send('Not Found');
+});
+
 fccTesting(app); //For FCC testing purposes
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use(bodyParser.json());
@@ -44,7 +55,7 @@ function ensureAuthenticated(req, res, next) {
 
 app.route('/profile')
   .get(ensureAuthenticated, (req, res) => {
-    res.render('pug/profile', {username: req.user.username});
+    res.render(process.cwd() + '/views/pug/profile', {username: req.user.username});
   });
 
 
@@ -52,6 +63,10 @@ app.post('/login', passport.authenticate('local', {failureRedirect: '/'}), (req,
   res.redirect('/profile');
 });
 
+app.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
 
 
 mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
