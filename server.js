@@ -39,12 +39,12 @@ function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
       return next();
   }
-  res.redirect('/');
+  res.redirect(301, '/');
 };
 
 app.route('/profile')
-  .get(ensureAuthenticated, (req,res) => {
-       res.render('pug/profile');
+  .get(ensureAuthenticated, (req, res) => {
+    res.render('pug/profile');
   });
 
 
