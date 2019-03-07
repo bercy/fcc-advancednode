@@ -95,10 +95,13 @@ mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
       .post((req, res, next) => {
           db.collection('users').findOne({ username: req.body.username }, function (err, user) {
               if(err) {
+                console.log(err);
                   next(err);
               } else if (user) {
+                console.log('exists');
                   res.redirect('/');
               } else {
+                console.log('create');
                   db.collection('users').insertOne(
                     {username: req.body.username,
                      password: req.body.password},
@@ -117,6 +120,12 @@ mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
             res.redirect('/profile');
         }
     );
+    
+    app.use((req, res, next) => {
+      res.status(404)
+        .type('text')
+        .send('Not Found');
+    });
 
     app.listen(process.env.PORT || 3000, () => {
       console.log("Listening on port " + process.env.PORT);
@@ -124,10 +133,6 @@ mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
   }
 });
 
-app.use((req, res, next) => {
-  res.status(404)
-    .type('text')
-    .send('Not Found');
-});
+
 
 
