@@ -44,14 +44,14 @@ app.get('/profile', (req, res) => {
 });
 
 
-mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, db) => {
+mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
   if(err) {
     console.log('Database error: ' + err);
   } else {
     console.log('Successful database connection');
-        console.log(db);
-
-
+    
+    const db = client.db();
+  
     
     passport.deserializeUser((id, done) => {
       db.collection('users').findOne({_id: new ObjectID(id)}, (err, doc) => {
@@ -62,7 +62,7 @@ mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, db) => {
     passport.use(new LocalStrategy(
       function(username, password, done) {
         db.collection('users').findOne({ username: username }, function (err, user) {
-          console.log('User '+ username +' attempted to log in.');
+          console.log('User "'+ username +'" attempted to log in.');
           if (err) { return done(err); }
           if (!user) { return done(null, false); }
           if (password !== user.password) { return done(null, false); }
