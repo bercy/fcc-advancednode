@@ -31,7 +31,7 @@ passport.serializeUser((user, done) => {
 
 app.route('/')
   .get((req, res) => {
-    res.render('pug/index', {title: 'Hello', message: 'Please login', showLogin: true});
+    res.render('pug/index', {title: 'Home Page', message: 'Please login', showLogin: true});
   });
 
 
@@ -39,12 +39,12 @@ function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
       return next();
   }
-  res.redirect(301, '/');
+  res.redirect('/');
 };
 
 app.route('/profile')
   .get(ensureAuthenticated, (req, res) => {
-    res.render('pug/profile');
+    res.render('pug/profile', {username: req.user.username});
   });
 
 
