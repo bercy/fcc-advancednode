@@ -6,9 +6,7 @@ const bcrypt        = require('bcrypt');
 
 module.exports = function (app, db) {
     passport.deserializeUser((id, done) => {
-      db.collection('users').findOne({_id: new ObjectID(id)}, (err, doc) => {
-            done(null, doc);
-      });
+      db.collection('users').findOne({_id: new ObjectID(id)}, done);
     });
     
     passport.use(new LocalStrategy(
