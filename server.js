@@ -18,11 +18,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
-  res.status(404)
-    .type('text')
-    .send('Not Found');
-});
 
 fccTesting(app); //For FCC testing purposes
 app.use('/public', express.static(process.cwd() + '/public'));
@@ -42,7 +37,7 @@ passport.serializeUser((user, done) => {
 
 app.route('/')
   .get((req, res) => {
-    res.render('pug/index', {title: 'Home Page', message: 'Please login', showLogin: true});
+    res.render('pug/index', {title: 'Home Page', message: 'Please login', showLogin: true, showRegistration: true});
   });
 
 
@@ -95,10 +90,44 @@ mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
         });
       }
     ));
+    
+    app.route('/register')
+      .post((req, res, next) => {
+          db.collection('users').findOne({ username: req.body.username }, function (err, user) {
+              if(err) {
+                  next(err);
+              } else if (user) {
+                  res.redirect('/');
+              } else {
+                  db.collection('users').insertOne(
+                    {username: req.body.username,
+                     password: req.body.password},
+                    (err, doc) => {
+                        if(err) {
+                            res.redirect('/');
+                        } else {
+                            next(null, user);
+                        }
+                    }
+                  )
+              }
+          })},
+        passport.authenticate('local', { failureRedirect: '/' }),
+        (req, res, next) => {
+            res.redirect('/profile');
+        }
+    );
 
     app.listen(process.env.PORT || 3000, () => {
       console.log("Listening on port " + process.env.PORT);
     });
   }
 });
+
+app.use((req, res, next) => {
+  res.status(404)
+    .type('text')
+    .send('Not Found');
+});
+
 
