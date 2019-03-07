@@ -1,13 +1,18 @@
 'use strict';
 
-const express     = require('express');
-const bodyParser  = require('body-parser');
-const fccTesting  = require('./freeCodeCamp/fcctesting.js');
-const passport    = require('passport');
-const session     = require('express-session');
-const ObjectID    = require('mongodb').ObjectID;
-const mongo       = require('mongodb').MongoClient;
+const express       = require('express');
+const bodyParser    = require('body-parser');
+const fccTesting    = require('./freeCodeCamp/fcctesting.js');
+const passport      = require('passport');
+const session       = require('express-session');
+const ObjectID      = require('mongodb').ObjectID;
+const mongo         = require('mongodb').MongoClient;
 const LocalStrategy = require('passport-local');
+const bcrypt        = require('bcrypt');
+const routes        = require('./Routes');
+const auth          = require('./Auth');
+
+
 
 const app = express();
 
@@ -61,6 +66,8 @@ mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
     console.log('Successful database connection');
     
     const db = client.db();
+    
+    routes(app, db
   
     
     passport.deserializeUser((id, done) => {
@@ -75,9 +82,8 @@ mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
               console.log('User "'+ username +'" attempted to log in.');
               if (err) { return done(err); }
               if (!user) { return done(null, false); }
-              if (password !== user.password) { return done(null, false); }
+              if (!bcrypt.compareSync(password, user.password)) { return done(null, false); }
 
-              console.log('logged in');
               return done(null, user);
             });
           }
@@ -119,16 +125,14 @@ mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
       .post((req, res, next) => {
           db.collection('users').findOne({ username: req.body.username }, function (err, user) {
               if(err) {
-                console.log(err);
                   next(err);
               } else if (user) {
-                console.log('exists');
                   res.redirect('/');
               } else {
-                console.log('create');
+                  const hash = bcrypt.hashSync(req.body.password, 12);
                   db.collection('users').insertOne(
                     {username: req.body.username,
-                     password: req.body.password},
+                     password: hash},
                     (err, doc) => {
                         if(err) {
                             res.redirect('/');
